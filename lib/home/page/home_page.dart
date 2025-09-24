@@ -113,11 +113,6 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         backgroundColor: Colors.black,
 
-        // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: scanQrCode,
-        //   child: const Icon(Icons.qr_code_scanner, size: 50),
-        // ),
         body: Row(
           children: [
             if (!isDrawerOnRight) buildDrawer(), // drawer on left
@@ -240,7 +235,7 @@ class _HomePageState extends State<HomePage> {
     // Define your drawer items here for easy management
     final drawerItems = [
       {'icon': Icons.home, 'action': 'navigate_home'},
-      {'icon': Icons.settings, 'action': 'show_qr_dialog'},
+      {'icon': Icons.settings_applications, 'action': 'show_qr_dialog'},
       {'icon': Icons.swap_horiz, 'action': 'swap_drawer'},
       // ✨ To add more buttons, just add a new map to this list!
       // {'icon': Icons.info, 'action': 'show_info_dialog'},
@@ -275,7 +270,7 @@ class _HomePageState extends State<HomePage> {
                     // ✅ Wait for the dialog to be closed
                     await _showQrDialog(
                       drawerContext,
-                      "qrData",
+                      "https://www.linkedin.com/in/akanshu-jamwal/",
                       !isDrawerOnRight ? 80.0 : 0,
                       isDrawerOnRight ? 80.0 : 0,
                     );
@@ -336,69 +331,139 @@ class _HomePageState extends State<HomePage> {
         return Padding(
           padding: EdgeInsets.only(left: leftpadding, right: rightpadding),
           child: AlertDialog(
-            title: const Text("QR Content"),
-            contentPadding: const EdgeInsets.fromLTRB(15.0, 15.0, 15.0, 10.0),
+            backgroundColor: Colors.white,
+
+            // contentPadding: const EdgeInsets.fromLTRB(15.0, 5.0, 15.0, 10.0),
             content: SizedBox(
               width: 250,
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(dialogContext),
+                          child: Container(
+                            child: const Icon(Icons.close, color: Colors.red),
+                          ),
+                        ),
+                        SizedBox(width: 5),
+                        if (isUrl) ...[
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: data));
+                              Navigator.pop(dialogContext);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Text Copied!")),
+                              );
+                            },
+                            child: Container(
+                              child: const Icon(
+                                Icons.copy_outlined,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          GestureDetector(
+                            onTap: () async {
+                              if (uri != null) {
+                                await launchUrl(uri);
+                              }
+                            },
+                            child: Container(
+                              child: const Icon(
+                                Icons.open_in_browser_outlined,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          GestureDetector(
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: data));
+                              Navigator.pop(dialogContext);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Text Copied!")),
+                              );
+                            },
+                            child: Container(
+                              child: const Icon(
+                                Icons.copy_outlined,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+
                     QrImageView(
                       data: data,
                       size: 200,
+
                       version: QrVersions.auto,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      data,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
+                      dataModuleStyle: const QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.circle,
+                        color: Colors.black,
+                      ),
+                      eyeStyle: const QrEyeStyle(
+                        eyeShape: QrEyeShape.circle,
+                        color: Colors.black,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    // Text(
+                    //   data,
+                    //   textAlign: TextAlign.center,
+                    //   style: const TextStyle(
+                    //     fontSize: 16,
+                    //     color: Colors.black87,
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
             ),
-            actions: [
-              if (isUrl) ...[
-                TextButton(
-                  child: const Text("COPY URL"),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: data));
-                    Navigator.pop(dialogContext);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("URL Copied!")),
-                    );
-                  },
-                ),
-                TextButton(
-                  child: const Text("OPEN"),
-                  onPressed: () async {
-                    if (uri != null) {
-                      await launchUrl(uri);
-                    }
-                  },
-                ),
-              ] else ...[
-                TextButton(
-                  child: const Text("COPY TEXT"),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: data));
-                    Navigator.pop(dialogContext);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Text Copied!")),
-                    );
-                  },
-                ),
-              ],
-              TextButton(
-                child: const Text("CLOSE"),
-                onPressed: () => Navigator.pop(dialogContext),
-              ),
-            ],
+            // actions: [
+            //   if (isUrl) ...[
+            //     TextButton(
+            //       child: const Text("COPY URL"),
+            //       onPressed: () {
+            //         Clipboard.setData(ClipboardData(text: data));
+            //         Navigator.pop(dialogContext);
+            //         ScaffoldMessenger.of(context).showSnackBar(
+            //           const SnackBar(content: Text("URL Copied!")),
+            //         );
+            //       },
+            //     ),
+            //     TextButton(
+            //       child: const Text("OPEN"),
+            //       onPressed: () async {
+            //         if (uri != null) {
+            //           await launchUrl(uri);
+            //         }
+            //       },
+            //     ),
+            //   ] else ...[
+            //     TextButton(
+            //       child: const Text("COPY TEXT"),
+            //       onPressed: () {
+            //         Clipboard.setData(ClipboardData(text: data));
+            //         Navigator.pop(dialogContext);
+            //         ScaffoldMessenger.of(context).showSnackBar(
+            //           const SnackBar(content: Text("Text Copied!")),
+            //         );
+            //       },
+            //     ),
+            //   ],
+            //   TextButton(
+            //     child: const Text("CLOSE"),
+            //     onPressed: () => Navigator.pop(dialogContext),
+            //   ),
+            // ],
           ),
         );
       },
