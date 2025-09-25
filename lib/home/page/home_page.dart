@@ -60,6 +60,7 @@
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:link_vault/auth/auth_service.dart';
 import 'package:link_vault/home/widgets/animated_exit_dialog.dart';
 import 'package:link_vault/home/widgets/circular_avtar_image.dart';
 import 'package:link_vault/home/widgets/info_card.dart';
@@ -232,11 +233,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildDrawer() {
+    final authService = AuthService();
     // Define your drawer items here for easy management
     final drawerItems = [
       {'icon': Icons.home, 'action': 'navigate_home'},
       {'icon': Icons.settings_applications, 'action': 'show_qr_dialog'},
       {'icon': Icons.swap_horiz, 'action': 'swap_drawer'},
+      {'icon': Icons.logout, 'action': 'sign_out'},
       // ✨ To add more buttons, just add a new map to this list!
       // {'icon': Icons.info, 'action': 'show_info_dialog'},
     ];
@@ -278,6 +281,8 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       isDrawerOnRight = !isDrawerOnRight;
                     });
+                  } else if (item['action'] == 'sign_out') {
+                    await authService.signOut(); // Call sign out method
                   }
 
                   // ✅ After the action is complete (or dialog is closed),
