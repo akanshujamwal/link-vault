@@ -200,27 +200,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // ElevatedButton(
-                    //   onPressed: () {
-                    //     Navigator.pushNamed(context, '/generate');
-                    //   },
-                    //   child: const Text("Generate QR code"),
-                    // ),
-
-                    // Text('Scanned QR: $qrData'),
+                   
                     const SizedBox(height: 30),
-                    // ElevatedButton(
-                    //   onPressed: () {
-                    //     setState(() {
-                    //       isDrawerOnRight = !isDrawerOnRight;
-                    //     });
-                    //   },
-                    //   child: Text(
-                    //     isDrawerOnRight
-                    //         ? "Move Drawer to Left"
-                    //         : "Move Drawer to Right",
-                    //   ),
-                    // ),
+                 
                   ],
                 ),
               ),
