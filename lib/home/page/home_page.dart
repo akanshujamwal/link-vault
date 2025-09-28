@@ -81,25 +81,25 @@
 //   final String phoneNumber = '+91 9682685643';
 //   int _selectedIndex = -1; // control drawer position
 
-//   // Function to scan QR code
-//   Future<void> scanQrCode() async {
-//     try {
-//       // Navigate to QR Scanner page and get the scanned result
-//       final scannedData = await Navigator.of(context).push<String>(
-//         MaterialPageRoute(builder: (context) => const QRScannerPage()),
-//       );
+  // // Function to scan QR code
+  // Future<void> scanQrCode() async {
+  //   try {
+  //     // Navigate to QR Scanner page and get the scanned result
+  //     final scannedData = await Navigator.of(context).push<String>(
+  //       MaterialPageRoute(builder: (context) => const QRScannerPage()),
+  //     );
 
-//       if (scannedData != null) {
-//         setState(() {
-//           qrData = scannedData;
-//         });
-//       }
-//     } catch (e) {
-//       setState(() {
-//         qrData = 'Error scanning QR: $e';
-//       });
-//     }
-//   }
+  //     if (scannedData != null) {
+  //       setState(() {
+  //         qrData = scannedData;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       qrData = 'Error scanning QR: $e';
+  //     });
+  //   }
+  // }
 
 //   @override
 //   Widget build(BuildContext context) {
@@ -188,19 +188,19 @@
 //                     ),
 //                     const SizedBox(height: 20),
 //                     ContactInfoCard(),
-//                     Spacer(),
-//                     IconButton(
-//                       onPressed: () {
-//                         scanQrCode();
-//                       },
-//                       icon: Icon(
-//                         Icons.qr_code_scanner,
-//                         size: 50,
-//                         color: Colors.white,
-//                       ),
-//                     ),
+// Spacer(),
+// IconButton(
+//   onPressed: () {
+//     scanQrCode();
+//   },
+//   icon: Icon(
+//     Icons.qr_code_scanner,
+//     size: 50,
+//     color: Colors.white,
+//   ),
+// ),
 
-//                     const SizedBox(height: 30),
+// const SizedBox(height: 30),
 
 //                   ],
 //                 ),
@@ -509,6 +509,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final FirestoreService _firestoreService = FirestoreService();
   bool isDrawerOnRight = false;
+   String qrData = "Hello, World!"; 
   int _selectedIndex = -1;
 
   // --- Helper function to map icon names to actual Icons ---
@@ -535,6 +536,25 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Function to scan QR code
+  Future<void> scanQrCode() async {
+    try {
+      // Navigate to QR Scanner page and get the scanned result
+      final scannedData = await Navigator.of(context).push<String>(
+        MaterialPageRoute(builder: (context) => const QRScannerPage()),
+      );
+
+      if (scannedData != null) {
+        setState(() {
+          qrData = scannedData;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        qrData = 'Error scanning QR: $e';
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -554,7 +574,7 @@ class _HomePageState extends State<HomePage> {
         body: Row(
           children: [
             if (!isDrawerOnRight) buildDrawer(), // drawer on left
-            const Expanded(
+            Expanded(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -578,6 +598,19 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 20),
                     ContactInfoCard(),
                     Spacer(),
+
+                    IconButton(
+                      onPressed: () {
+                        scanQrCode();
+                      },
+                      icon: Icon(
+                        Icons.qr_code_scanner,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
