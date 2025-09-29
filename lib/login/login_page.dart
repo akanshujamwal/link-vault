@@ -44,39 +44,43 @@ import 'package:link_vault/auth/auth_service.dart';
 // }
 
 
+
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authService = AuthService();
+    final AuthService authService = AuthService();
+
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Icon(Icons.lock, size: 100, color: Colors.white),
+            const SizedBox(height: 20),
             const Text(
               'Welcome to Link Vault',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.white, fontSize: 24),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 50),
             ElevatedButton.icon(
-              onPressed: () {
-                authService.signInWithGoogle();
-              },
-              // Remember to add a Google logo to your assets folder
-              // icon: Image.asset('assets/google_logo.png', height: 24.0),
-              icon: const Icon(Icons.login), // Placeholder icon
+              icon: const Icon(
+                Icons.login,
+              ), // Replace with a Google icon if you have the package
               label: const Text('Sign in with Google'),
+              onPressed: () async {
+                await authService.signInWithGoogle();
+                // The AuthGate will handle navigation automatically
+              },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
                 backgroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
-                  vertical: 12,
+                  vertical: 15,
                 ),
-                textStyle: const TextStyle(fontSize: 16),
               ),
             ),
           ],

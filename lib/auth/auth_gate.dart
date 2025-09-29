@@ -56,7 +56,6 @@
 //     );
 //   }
 // }
-// lib/auth/auth_gate.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -75,7 +74,7 @@ class AuthGate extends StatelessWidget {
         builder: (context, snapshot) {
           // User is not logged in
           if (!snapshot.hasData) {
-            return const LoginPage(); // Or whatever your login screen is
+            return const LoginPage();
           }
 
           // User is logged in, now check profile completion
@@ -93,7 +92,10 @@ class ProfileCompletionCheck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get(),
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -104,24 +106,26 @@ class ProfileCompletionCheck extends StatelessWidget {
         if (snapshot.hasError) {
           return const Center(child: Text("Something went wrong."));
         }
-        
+
         // Data received, now check the fields
         if (snapshot.hasData && snapshot.data!.exists) {
           final userData = snapshot.data!.data() as Map<String, dynamic>;
-          
+
           final String designation = userData['designation'] ?? '';
           final String companyName = userData['companyName'] ?? '';
           final String mobileNumber = userData['mobileNumber'] ?? '';
 
           // If any of the required fields are empty, profile is incomplete
-          if (designation.isEmpty || companyName.isEmpty || mobileNumber.isEmpty) {
+          if (designation.isEmpty ||
+              companyName.isEmpty ||
+              mobileNumber.isEmpty) {
             return const ProfilePage(); // Force user to the profile page
           } else {
             return const HomePage(); // Profile is complete, go to home
           }
         }
-        
-        // Fallback: If document doesn't exist, something is wrong, send to profile.
+
+        // Fallback: If document doesn't exist, send to profile page to create it.
         return const ProfilePage();
       },
     );
