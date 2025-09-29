@@ -46,6 +46,7 @@ dependencies:
   url_launcher: ^6.3.2
   qr_code_scanner_plus: ^2.0.12
   image_picker: ^1.2.0
+  reorderable_grid_view: ^2.2.8
   # flutter_barcode_scanner: ^2.0.0
   # qr_code_scanner:
 
