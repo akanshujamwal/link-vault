@@ -2,81 +2,14 @@
 // import 'package:flutter/services.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:link_vault/all_links/pages/all_links_page.dart';
+// import 'package:link_vault/home/widgets/add_or_edit_link_dialog.dart';
 // import 'package:link_vault/home/widgets/animated_exit_dialog.dart';
 // import 'package:link_vault/profile/profile_page.dart';
 // import 'package:link_vault/scanner/page/scanner_page.dart';
+// import 'package:link_vault/services/firestore_service.dart';
 // import 'package:qr_flutter/qr_flutter.dart';
 // import 'package:url_launcher/url_launcher.dart';
-
-// // Page to display all links when "Show More" is tapped
-// class AllLinksPage extends StatelessWidget {
-//   final List<dynamic> allLinks;
-//   final VoidCallback onAdd;
-//   final Function(String) getIconForPlatform;
-
-//   const AllLinksPage({
-//     super.key,
-//     required this.allLinks,
-//     required this.onAdd,
-//     required this.getIconForPlatform,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Colors.black,
-//       appBar: AppBar(
-//         title: const Text('All My Links'),
-//         backgroundColor: Colors.black,
-//       ),
-//       body: GridView.builder(
-//         padding: const EdgeInsets.all(16.0),
-//         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-//           crossAxisCount: 4,
-//           crossAxisSpacing: 16,
-//           mainAxisSpacing: 16,
-//         ),
-//         itemCount: allLinks.length,
-//         itemBuilder: (context, index) {
-//           final item = allLinks[index];
-//           final IconData icon = getIconForPlatform(item['platform']);
-//           final String platformName = item['platform'];
-
-//           return InkWell(
-//             onTap: () {
-//               // In a real app, you might show a QR code or open the link
-//               print("Tapped on ${item['data']}");
-//             },
-//             borderRadius: BorderRadius.circular(12),
-//             child: Container(
-//               decoration: BoxDecoration(
-//                 color: Colors.grey.shade900,
-//                 borderRadius: BorderRadius.circular(12),
-//               ),
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Icon(icon, color: Colors.white, size: 35),
-//                   const SizedBox(height: 8),
-//                   Text(
-//                     platformName[0].toUpperCase() + platformName.substring(1),
-//                     style: const TextStyle(color: Colors.white70, fontSize: 12),
-//                     textAlign: TextAlign.center,
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           );
-//         },
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: onAdd,
-//         backgroundColor: Colors.white,
-//         child: const Icon(Icons.add, color: Colors.black),
-//       ),
-//     );
-//   }
-// }
 
 // class HomePage extends StatefulWidget {
 //   const HomePage({super.key});
@@ -86,26 +19,18 @@
 // }
 
 // class _HomePageState extends State<HomePage> {
-//   final User? currentUser = FirebaseAuth.instance.currentUser;
+//   final _firestoreService = FirestoreService();
 
 //   void _onItemTapped(int index) {
 //     if (index == 1) {
-//       _scanQrCode();
+//       Navigator.of(
+//         context,
+//       ).push(MaterialPageRoute(builder: (context) => const QRScannerPage()));
 //     } else if (index == 2) {
 //       Navigator.push(
 //         context,
 //         MaterialPageRoute(builder: (context) => const ProfilePage()),
 //       );
-//     }
-//   }
-
-//   Future<void> _scanQrCode() async {
-//     try {
-//       await Navigator.of(context).push<String>(
-//         MaterialPageRoute(builder: (context) => const QRScannerPage()),
-//       );
-//     } catch (e) {
-//       print('Error scanning QR: $e');
 //     }
 //   }
 
@@ -163,234 +88,6 @@
 //         return Icons.language;
 //       default:
 //         return Icons.link;
-//     }
-//   }
-
-//   Future<void> _showAddLinkDialog() async {
-//     final formKey = GlobalKey<FormState>();
-//     final linkController = TextEditingController();
-//     TextEditingController? platformController;
-
-//     final List<String> platforms = [
-//       'Behance',
-//       'CodeChef',
-//       'Codeforces',
-//       'CodePen',
-//       'CodeSandbox',
-//       'Dev.to',
-//       'Discord',
-//       'Dribbble',
-//       'Facebook',
-//       'GeeksforGeeks',
-//       'GitHub',
-//       'HackerEarth',
-//       'HackerRank',
-//       'Hashnode',
-//       'Instagram',
-//       'Kagle',
-//       'LeetCode',
-//       'LinkedIn',
-//       'Medium',
-//       'RSSFeed',
-//       'StackOverflow',
-//       'TopCoder',
-//       'Twitter',
-//       'Website',
-//       'YouTube',
-//       'Other',
-//     ];
-
-//     await showDialog(
-//       context: context,
-//       builder: (dialogContext) {
-//         return AlertDialog(
-//           title: const Text('Add New Link'),
-//           content: Form(
-//             key: formKey,
-//             child: Column(
-//               mainAxisSize: MainAxisSize.min,
-//               children: [
-//                 Autocomplete<String>(
-//                   optionsBuilder: (TextEditingValue textEditingValue) {
-//                     if (textEditingValue.text == '') {
-//                       return const Iterable<String>.empty();
-//                     }
-//                     return platforms
-//                         .where((String option) {
-//                           return option.toLowerCase().contains(
-//                             textEditingValue.text.toLowerCase(),
-//                           );
-//                         })
-//                         .take(3);
-//                   },
-//                   fieldViewBuilder:
-//                       (
-//                         BuildContext context,
-//                         TextEditingController fieldController,
-//                         FocusNode fieldFocusNode,
-//                         VoidCallback onFieldSubmitted,
-//                       ) {
-//                         platformController = fieldController;
-//                         return TextFormField(
-//                           controller: fieldController,
-//                           focusNode: fieldFocusNode,
-//                           decoration: const InputDecoration(
-//                             labelText: 'Platform',
-//                           ),
-//                           validator: (value) {
-//                             if (value == null || value.isEmpty) {
-//                               return 'Please enter a platform';
-//                             }
-//                             if (!platforms.any(
-//                               (p) => p.toLowerCase() == value.toLowerCase(),
-//                             )) {
-//                               return 'Please select a valid platform';
-//                             }
-//                             return null;
-//                           },
-//                         );
-//                       },
-//                 ),
-//                 TextFormField(
-//                   controller: linkController,
-//                   decoration: const InputDecoration(labelText: 'URL'),
-//                   validator: (value) => (value == null || value.isEmpty)
-//                       ? 'Please enter a URL'
-//                       : null,
-//                 ),
-//               ],
-//             ),
-//           ),
-//           actions: [
-//             TextButton(
-//               onPressed: () => Navigator.pop(dialogContext),
-//               child: const Text('Cancel'),
-//             ),
-//             ElevatedButton(
-//               onPressed: () async {
-//                 if (formKey.currentState!.validate()) {
-//                   if (currentUser == null) return;
-//                   final String platform = platformController?.text ?? '';
-//                   final newLink = {
-//                     'platform': platform.toLowerCase(),
-//                     'data': linkController.text,
-//                     'createdAt': Timestamp.now(),
-//                   };
-//                   final userDocRef = FirebaseFirestore.instance
-//                       .collection('users')
-//                       .doc(currentUser!.uid);
-//                   await userDocRef.update({
-//                     'custom_links': FieldValue.arrayUnion([newLink]),
-//                   });
-//                   Navigator.pop(dialogContext);
-//                 }
-//               },
-//               child: const Text('Save'),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
-
-//   Future<void> _showEditLinkDialog(Map<String, dynamic> oldLinkData) async {
-//     final formKey = GlobalKey<FormState>();
-//     final linkController = TextEditingController(text: oldLinkData['data']);
-//     final platformController = TextEditingController(
-//       text: oldLinkData['platform'],
-//     );
-
-//     await showDialog(
-//       context: context,
-//       builder: (dialogContext) => AlertDialog(
-//         title: const Text('Edit Link'),
-//         content: Form(
-//           key: formKey,
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               TextFormField(
-//                 controller: platformController,
-//                 decoration: const InputDecoration(labelText: 'Platform'),
-//                 enabled: false,
-//               ),
-//               TextFormField(
-//                 controller: linkController,
-//                 decoration: const InputDecoration(labelText: 'URL'),
-//                 validator: (value) => (value == null || value.isEmpty)
-//                     ? 'Please enter a URL'
-//                     : null,
-//               ),
-//             ],
-//           ),
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(dialogContext),
-//             child: const Text('Cancel'),
-//           ),
-//           ElevatedButton(
-//             onPressed: () async {
-//               if (formKey.currentState!.validate()) {
-//                 if (currentUser == null) return;
-
-//                 final newLinkData = {
-//                   'platform': platformController.text.toLowerCase(),
-//                   'data': linkController.text,
-//                   'createdAt': oldLinkData['createdAt'],
-//                 };
-
-//                 final userDocRef = FirebaseFirestore.instance
-//                     .collection('users')
-//                     .doc(currentUser!.uid);
-//                 await userDocRef.update({
-//                   'custom_links': FieldValue.arrayRemove([oldLinkData]),
-//                 });
-//                 await userDocRef.update({
-//                   'custom_links': FieldValue.arrayUnion([newLinkData]),
-//                 });
-
-//                 Navigator.pop(dialogContext);
-//               }
-//             },
-//             child: const Text('Save Changes'),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   Future<void> _deleteLink(Map<String, dynamic> linkData) async {
-//     final bool? confirm = await showDialog<bool>(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         title: const Text('Delete Link?'),
-//         content: Text(
-//           'Are you sure you want to delete your ${linkData['platform']} link?',
-//         ),
-//         actions: [
-//           TextButton(
-//             onPressed: () => Navigator.pop(context, false),
-//             child: const Text('Cancel'),
-//           ),
-//           TextButton(
-//             onPressed: () => Navigator.pop(context, true),
-//             child: const Text(
-//               'Delete',
-//               style: TextStyle(color: Colors.redAccent),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-
-//     if (confirm == true && currentUser != null) {
-//       final userDocRef = FirebaseFirestore.instance
-//           .collection('users')
-//           .doc(currentUser!.uid);
-//       await userDocRef.update({
-//         'custom_links': FieldValue.arrayRemove([linkData]),
-//       });
 //     }
 //   }
 
@@ -476,7 +173,10 @@
 //                 ),
 //                 onTap: () {
 //                   Navigator.pop(context);
-//                   _showEditLinkDialog(linkData);
+//                   showDialog(
+//                     context: context,
+//                     builder: (_) => AddOrEditLinkDialog(existingLink: linkData),
+//                   );
 //                 },
 //               ),
 //               ListTile(
@@ -485,9 +185,33 @@
 //                   'Delete Link',
 //                   style: TextStyle(color: Colors.redAccent),
 //                 ),
-//                 onTap: () {
+//                 onTap: () async {
 //                   Navigator.pop(context);
-//                   _deleteLink(linkData);
+//                   final bool? confirm = await showDialog<bool>(
+//                     context: context,
+//                     builder: (context) => AlertDialog(
+//                       title: const Text('Delete Link?'),
+//                       content: Text(
+//                         'Are you sure you want to delete your ${linkData['platform']} link?',
+//                       ),
+//                       actions: [
+//                         TextButton(
+//                           onPressed: () => Navigator.pop(context, false),
+//                           child: const Text('Cancel'),
+//                         ),
+//                         TextButton(
+//                           onPressed: () => Navigator.pop(context, true),
+//                           child: const Text(
+//                             'Delete',
+//                             style: TextStyle(color: Colors.redAccent),
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   );
+//                   if (confirm == true) {
+//                     await _firestoreService.deleteLink(linkData);
+//                   }
 //                 },
 //               ),
 //             ],
@@ -497,127 +221,58 @@
 //     );
 //   }
 
-//   Widget _buildSocialGrid(List<dynamic> links) {
-//     List<dynamic> gridItems = [];
-//     bool hasMore = links.length > 7;
-
-//     if (hasMore) {
-//       gridItems = links.take(7).toList();
-//       gridItems.add({'platform': 'show_more'});
-//     } else {
-//       gridItems = List.from(links);
-//       gridItems.add({'platform': 'add_new'});
-//     }
-
-//     return Padding(
-//       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-//       child: GridView.builder(
-//         physics: const NeverScrollableScrollPhysics(),
-//         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-//           crossAxisCount: 4,
-//           crossAxisSpacing: 16,
-//           mainAxisSpacing: 16,
-//         ),
-//         itemCount: gridItems.length,
-//         itemBuilder: (context, index) {
-//           final item = gridItems[index];
-//           final String platform = item['platform'];
-
-//           if (platform == 'add_new') {
-//             return InkWell(
-//               onTap: _showAddLinkDialog,
-//               borderRadius: BorderRadius.circular(12),
-//               child: Container(
-//                 decoration: BoxDecoration(
-//                   color: Colors.grey.shade800,
-//                   borderRadius: BorderRadius.circular(12),
-//                 ),
-//                 child: const Column(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     Icon(Icons.add, color: Colors.white, size: 35),
-//                     SizedBox(height: 8),
-//                     Text(
-//                       "Add New",
-//                       style: TextStyle(color: Colors.white70, fontSize: 12),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             );
-//           }
-
-//           if (platform == 'show_more') {
-//             return InkWell(
-//               onTap: () {
-//                 Navigator.push(
-//                   context,
-//                   MaterialPageRoute(
-//                     builder: (context) => AllLinksPage(
-//                       allLinks: links,
-//                       onAdd: _showAddLinkDialog,
-//                       getIconForPlatform: _getIconForPlatform,
-//                     ),
+//   @override
+//   Widget build(BuildContext context) {
+//     return PopScope(
+//       canPop: false,
+//       onPopInvoked: (didPop) {
+//         if (!didPop) {
+//           showDialog(
+//             context: context,
+//             builder: (_) => const AnimatedExitDialog(),
+//           );
+//         }
+//       },
+//       child: Scaffold(
+//         backgroundColor: Colors.black,
+//         body: SafeArea(
+//           child: StreamBuilder<DocumentSnapshot>(
+//             stream: _firestoreService.getUserStream(),
+//             builder: (context, snapshot) {
+//               if (snapshot.connectionState == ConnectionState.waiting) {
+//                 return const Center(child: CircularProgressIndicator());
+//               }
+//               if (!snapshot.hasData || !snapshot.data!.exists) {
+//                 return const Center(
+//                   child: Text(
+//                     "Could not load profile.",
+//                     style: TextStyle(color: Colors.white),
 //                   ),
 //                 );
-//               },
-//               borderRadius: BorderRadius.circular(12),
-//               child: Container(
-//                 decoration: BoxDecoration(
-//                   color: Colors.grey.shade800,
-//                   borderRadius: BorderRadius.circular(12),
-//                 ),
-//                 child: const Column(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: [
-//                     Icon(Icons.more_horiz, color: Colors.white, size: 35),
-//                     SizedBox(height: 8),
-//                     Text(
-//                       "Show More",
-//                       style: TextStyle(color: Colors.white70, fontSize: 12),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             );
-//           }
-
-//           final IconData icon = _getIconForPlatform(platform);
-//           return InkWell(
-//             onTap: () => _showQrDialog(context, item['data']),
-//             onLongPress: () => _showLinkOptionsDialog(item),
-//             borderRadius: BorderRadius.circular(12),
-//             child: Container(
-//               decoration: BoxDecoration(
-//                 color: Colors.grey.shade900,
-//                 borderRadius: BorderRadius.circular(12),
-//               ),
-//               child: Column(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   Icon(icon, color: Colors.white, size: 35),
-//                   const SizedBox(height: 8),
-//                   Text(
-//                     platform[0].toUpperCase() + platform.substring(1),
-//                     style: const TextStyle(color: Colors.white70, fontSize: 12),
-//                     textAlign: TextAlign.center,
-//                   ),
-//                 ],
-//               ),
+//               }
+//               final userData = snapshot.data!.data() as Map<String, dynamic>;
+//               return _buildHomeBody(userData);
+//             },
+//           ),
+//         ),
+//         bottomNavigationBar: BottomNavigationBar(
+//           items: const <BottomNavigationBarItem>[
+//             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+//             BottomNavigationBarItem(
+//               icon: Icon(Icons.qr_code_scanner),
+//               label: 'Scan',
 //             ),
-//           );
-//         },
+//             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+//           ],
+//           currentIndex: 0,
+//           onTap: _onItemTapped,
+//         ),
 //       ),
 //     );
 //   }
 
 //   Widget _buildHomeBody(Map<String, dynamic> userData) {
-//     final String displayName = userData['displayName'] ?? 'No Name';
-//     final String designation = userData['designation'] ?? 'No Designation';
-//     final String companyName = userData['companyName'] ?? 'No Company';
-//     final String photoURL = userData['photoURL'] ?? '';
-//     final List<dynamic> customLinks = userData['custom_links'] ?? [];
-
+//     final List<dynamic> customLinks = List.from(userData['custom_links'] ?? []);
 //     customLinks.sort(
 //       (a, b) =>
 //           (b['createdAt'] as Timestamp).compareTo(a['createdAt'] as Timestamp),
@@ -626,37 +281,117 @@
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
+//         SizedBox(height: 50),
 //         SizedBox(
-//           height: MediaQuery.of(context).size.height * 0.5,
+//           height: MediaQuery.of(context).size.height * 0.4,
 //           child: Center(
 //             child: Column(
 //               mainAxisAlignment: MainAxisAlignment.center,
 //               children: [
 //                 const Spacer(),
 //                 CircleAvatar(
-//                   radius: 100,
-//                   backgroundImage: photoURL.isNotEmpty
-//                       ? NetworkImage(photoURL)
+//                   radius: 80,
+//                   backgroundImage: (userData['photoURL'] ?? '').isNotEmpty
+//                       ? NetworkImage(userData['photoURL'])
 //                       : null,
-//                   child: photoURL.isEmpty
+//                   child: (userData['photoURL'] ?? '').isEmpty
 //                       ? const Icon(Icons.person, size: 60)
 //                       : null,
 //                 ),
 //                 const SizedBox(height: 20),
-//                 Text(
-//                   displayName,
-//                   style: const TextStyle(
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.white,
-//                     fontSize: 35,
+//                 Card(
+//                   elevation: 8.0,
+//                   margin: const EdgeInsets.all(16.0),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(12.0),
+//                   ),
+//                   color: Colors.grey.shade800,
+//                   child: IntrinsicHeight(
+//                     child: Padding(
+//                       padding: const EdgeInsets.all(20.0),
+//                       child: Row(
+//                         mainAxisSize:
+//                             MainAxisSize.min, // Shrink-wrap the content
+//                         children: [
+//                           Container(
+//                             width: 90,
+//                             height: 90,
+//                             color: Colors.red.shade300,
+//                           ),
+
+//                           // Making the divider impossible to miss
+//                           const VerticalDivider(
+//                             color: Colors.white70,
+//                             thickness: 1,
+//                             width: 40,
+//                             indent: 2,
+//                             endIndent: 2,
+//                           ),
+
+//                           Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               Text(
+//                                 userData['displayName'] ?? 'No Name',
+//                                 style: const TextStyle(
+//                                   fontWeight: FontWeight.bold,
+//                                   color: Colors.white,
+//                                   fontSize: 28,
+//                                 ),
+//                               ),
+
+//                               if ((userData['designation'] ?? '').isNotEmpty)
+//                                 Text(
+//                                   '${userData['designation']}',
+//                                   style: const TextStyle(
+//                                     color: Colors.white70,
+//                                     fontSize: 24,
+//                                   ),
+//                                 ),
+//                               const SizedBox(height: 5),
+//                               Row(
+//                                 children: [
+//                                   Icon(
+//                                     Icons.phone,
+//                                     color: Colors.white70,
+//                                     size: 18,
+//                                   ),
+//                                   const SizedBox(width: 5),
+//                                   Text(
+//                                     '${userData['mobileNumber']}',
+//                                     style: const TextStyle(
+//                                       color: Colors.white70,
+//                                       fontSize: 18,
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
+//                               const SizedBox(height: 5),
+//                               Row(
+//                                 children: [
+//                                   Icon(
+//                                     Icons.email,
+//                                     color: Colors.white70,
+//                                     size: 18,
+//                                   ),
+//                                   const SizedBox(width: 5),
+//                                   Text(
+//                                     '${userData['email']}',
+//                                     style: const TextStyle(
+//                                       color: Colors.white70,
+//                                       fontSize: 18,
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
+//                             ],
+//                           ),
+//                         ],
+//                       ),
+//                     ),
 //                   ),
 //                 ),
-//                 const SizedBox(height: 5),
-//                 if (designation.isNotEmpty && companyName.isNotEmpty)
-//                   Text(
-//                     '$designation @ $companyName',
-//                     style: const TextStyle(color: Colors.white, fontSize: 18),
-//                   ),
+
 //                 const Spacer(),
 //               ],
 //             ),
@@ -678,56 +413,143 @@
 //     );
 //   }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     if (currentUser == null) {
-//       return const Scaffold(body: Center(child: Text("Not logged in.")));
+//   Widget _buildSocialGrid(List<dynamic> links) {
+//     final platformCounts = <String, int>{};
+//     for (var link in links) {
+//       final platform = link['platform'] as String;
+//       platformCounts[platform] = (platformCounts[platform] ?? 0) + 1;
+//     }
+//     final duplicatePlatforms = platformCounts.entries
+//         .where((entry) => entry.value > 1)
+//         .map((entry) => entry.key)
+//         .toSet();
+
+//     List<dynamic> gridItems = [];
+//     bool hasMore = links.length > 5;
+
+//     if (hasMore) {
+//       gridItems = links.take(5).toList();
+//       gridItems.add({'platform': 'show_more'});
+//     } else {
+//       gridItems = List.from(links);
+//       gridItems.add({'platform': 'add_new'});
 //     }
 
-//     return PopScope(
-//       canPop: false,
-//       onPopInvoked: (didPop) {
-//         if (didPop) return;
-//         showDialog(
-//           context: context,
-//           builder: (_) => const AnimatedExitDialog(),
-//         );
-//       },
-//       child: Scaffold(
-//         backgroundColor: Colors.black,
-//         body: StreamBuilder<DocumentSnapshot>(
-//           stream: FirebaseFirestore.instance
-//               .collection('users')
-//               .doc(currentUser!.uid)
-//               .snapshots(),
-//           builder: (context, snapshot) {
-//             if (snapshot.connectionState == ConnectionState.waiting) {
-//               return const Center(child: CircularProgressIndicator());
-//             }
-//             if (!snapshot.hasData || !snapshot.data!.exists) {
-//               return const Center(
-//                 child: Text(
-//                   "Could not load profile.",
-//                   style: TextStyle(color: Colors.white),
+//     return Padding(
+//       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+//       child: GridView.builder(
+//         physics: const NeverScrollableScrollPhysics(),
+//         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//           crossAxisCount: 3,
+//           crossAxisSpacing: 16,
+//           mainAxisSpacing: 16,
+//         ),
+//         itemCount: gridItems.length,
+//         itemBuilder: (context, index) {
+//           final item = gridItems[index];
+//           final String platform = item['platform'];
+
+//           // ✨ --- FIX: The onTap logic for these two buttons is now restored ---
+//           if (platform == 'add_new' || platform == 'show_more') {
+//             return InkWell(
+//               onTap: () {
+//                 if (platform == 'add_new') {
+//                   showDialog(
+//                     context: context,
+//                     builder: (_) => const AddOrEditLinkDialog(),
+//                   );
+//                 } else {
+//                   // platform == 'show_more'
+//                   Navigator.push(
+//                     context,
+//                     // ✨ --- The AllLinksPage constructor is now empty ---
+//                     MaterialPageRoute(
+//                       builder: (context) => const AllLinksPage(),
+//                     ),
+//                   );
+//                 }
+//               },
+//               borderRadius: BorderRadius.circular(12),
+//               child: Container(
+//                 decoration: BoxDecoration(
+//                   color: Colors.grey.shade800,
+//                   borderRadius: BorderRadius.circular(12),
 //                 ),
-//               );
-//             }
-//             final userData = snapshot.data!.data() as Map<String, dynamic>;
-//             return _buildHomeBody(userData);
-//           },
-//         ),
-//         bottomNavigationBar: BottomNavigationBar(
-//           items: const <BottomNavigationBarItem>[
-//             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-//             BottomNavigationBarItem(
-//               icon: Icon(Icons.qr_code_scanner),
-//               label: 'Scan',
-//             ),
-//             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-//           ],
-//           currentIndex: 0,
-//           onTap: _onItemTapped,
-//         ),
+//                 child: Column(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     Icon(
+//                       platform == 'add_new' ? Icons.add : Icons.more_horiz,
+//                       color: Colors.white,
+//                       size: 35,
+//                     ),
+//                     const SizedBox(height: 8),
+//                     Text(
+//                       platform == 'add_new' ? "Add New" : "Show More",
+//                       style: const TextStyle(
+//                         color: Colors.white70,
+//                         fontSize: 12,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             );
+//           }
+
+//           final IconData icon = _getIconForPlatform(platform);
+//           final bool isDuplicate = duplicatePlatforms.contains(platform);
+
+//           return Stack(
+//             children: [
+//               InkWell(
+//                 onTap: () => _showQrDialog(context, item['data']),
+//                 onLongPress: () => _showLinkOptionsDialog(item),
+//                 borderRadius: BorderRadius.circular(12),
+//                 child: Container(
+//                   width: double.infinity,
+//                   height: double.infinity,
+//                   decoration: BoxDecoration(
+//                     color: Colors.grey.shade900,
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   child: Column(
+//                     mainAxisAlignment: MainAxisAlignment.center,
+//                     children: [
+//                       Icon(icon, color: Colors.white, size: 35),
+//                       const SizedBox(height: 8),
+//                       Text(
+//                         platform[0].toUpperCase() + platform.substring(1),
+//                         style: const TextStyle(
+//                           color: Colors.white70,
+//                           fontSize: 12,
+//                         ),
+//                         textAlign: TextAlign.center,
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//               if (isDuplicate)
+//                 Positioned(
+//                   top: 4,
+//                   left: 4,
+//                   child: Container(
+//                     padding: const EdgeInsets.all(2),
+//                     decoration: const BoxDecoration(
+//                       color: Colors.black54,
+//                       shape: BoxShape.circle,
+//                     ),
+//                     child: const Icon(
+//                       Icons.control_point_duplicate,
+//                       color: Colors.amber,
+//                       size: 16,
+//                     ),
+//                   ),
+//                 ),
+//             ],
+//           );
+//         },
 //       ),
 //     );
 //   }
@@ -735,7 +557,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:link_vault/all_links/pages/all_links_page.dart';
 import 'package:link_vault/home/widgets/add_or_edit_link_dialog.dart';
 import 'package:link_vault/home/widgets/animated_exit_dialog.dart';
@@ -969,23 +790,25 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: StreamBuilder<DocumentSnapshot>(
-          stream: _firestoreService.getUserStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (!snapshot.hasData || !snapshot.data!.exists) {
-              return const Center(
-                child: Text(
-                  "Could not load profile.",
-                  style: TextStyle(color: Colors.white),
-                ),
-              );
-            }
-            final userData = snapshot.data!.data() as Map<String, dynamic>;
-            return _buildHomeBody(userData);
-          },
+        body: SafeArea(
+          child: StreamBuilder<DocumentSnapshot>(
+            stream: _firestoreService.getUserStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return const Center(
+                  child: Text(
+                    "Could not load profile.",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }
+              final userData = snapshot.data!.data() as Map<String, dynamic>;
+              return _buildHomeBody(userData);
+            },
+          ),
         ),
         bottomNavigationBar: BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
@@ -1009,59 +832,280 @@ class _HomePageState extends State<HomePage> {
       (a, b) =>
           (b['createdAt'] as Timestamp).compareTo(a['createdAt'] as Timestamp),
     );
+    final bool hasImage = (userData['photoURL'] ?? '').isNotEmpty;
+    // ✨ --- WRAPPED THE COLUMN WITH SingleChildScrollView ---
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              // Set a background color for the fallback icon case
+              color: Colors.grey.shade800,
+              // The border radius you requested
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+            ),
+            // Removed fixed height to allow for flexible content
+            // height: MediaQuery.of(context).size.height * 0.4,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 35),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: double
+                          .maxFinite, // Diameter of the old CircleAvatar (radius: 80)
+                      height:
+                          400, // Diameter of the old CircleAvatar (radius: 80)
+                      decoration: BoxDecoration(
+                        // Set a background color for the fallback icon case
+                        color: Colors.grey[800],
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.4,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(),
-                CircleAvatar(
-                  radius: 60,
-                  backgroundImage: (userData['photoURL'] ?? '').isNotEmpty
-                      ? NetworkImage(userData['photoURL'])
-                      : null,
-                  child: (userData['photoURL'] ?? '').isEmpty
-                      ? const Icon(Icons.person, size: 60)
-                      : null,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  userData['displayName'] ?? 'No Name',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 35,
+                        // The border radius you requested
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+
+                        // Conditionally apply the background image
+                        image: hasImage
+                            ? DecorationImage(
+                                image: NetworkImage(userData['photoURL']!),
+                                // This makes the image cover the container without distortion
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      // Conditionally show the icon if there's no image
+                      child: !hasImage
+                          ? const Icon(
+                              Icons.person,
+                              size: 80,
+                              color: Colors.white70,
+                            )
+                          : null,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 5),
-                if ((userData['designation'] ?? '').isNotEmpty)
-                  Text(
-                    '${userData['designation']} @ ${userData['companyName']}',
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: double
+                          .maxFinite, // Diameter of the old CircleAvatar (radius: 80)
+                      height:
+                          160, // Diameter of the old CircleAvatar (radius: 80)
+                      decoration: BoxDecoration(
+                        // Set a background color for the fallback icon case
+                        color: Colors.black,
+
+                        // The border radius you requested
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
+
+                        // Conditionally apply the background image
+                      ),
+                      // Conditionally show the icon if there's no image
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 10.0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 90,
+                              height: 90,
+                              color: Colors.red.shade300,
+                            ),
+                            const VerticalDivider(
+                              color: Colors.white70,
+                              thickness: 1,
+                              width: 40,
+                              indent: 2,
+                              endIndent: 2,
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userData['displayName'] ?? 'No Name',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 28,
+                                  ),
+                                ),
+                                if ((userData['designation'] ?? '').isNotEmpty)
+                                  Text(
+                                    '${userData['designation']}',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 24,
+                                    ),
+                                  ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.phone,
+                                      color: Colors.white70,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '${userData['mobileNumber']}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.email,
+                                      color: Colors.white70,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      '${userData['email']}',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                const Spacer(),
-              ],
+                  // Card(
+                  //   elevation: 0,
+                  //   // margin: const EdgeInsets.all(16.0),
+                  //   shape: RoundedRectangleBorder(
+                  //     borderRadius: BorderRadius.only(
+                  //       bottomLeft: Radius.circular(12),
+                  //       bottomRight: Radius.circular(12),
+                  //     ),
+                  //   ),
+                  //   color: Colors.black,
+                  //   child: IntrinsicHeight(
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  //       child: Row(
+                  //         mainAxisSize: MainAxisSize.min,
+                  //         children: [
+                  //           Container(
+                  //             width: 90,
+                  //             height: 90,
+                  //             color: Colors.red.shade300,
+                  //           ),
+                  //           const VerticalDivider(
+                  //             color: Colors.white70,
+                  //             thickness: 1,
+                  //             width: 40,
+                  //             indent: 2,
+                  //             endIndent: 2,
+                  //           ),
+                  //           Column(
+                  //             crossAxisAlignment: CrossAxisAlignment.start,
+                  //             children: [
+                  //               Text(
+                  //                 userData['displayName'] ?? 'No Name',
+                  //                 style: const TextStyle(
+                  //                   fontWeight: FontWeight.bold,
+                  //                   color: Colors.white,
+                  //                   fontSize: 28,
+                  //                 ),
+                  //               ),
+                  //               if ((userData['designation'] ?? '').isNotEmpty)
+                  //                 Text(
+                  //                   '${userData['designation']}',
+                  //                   style: const TextStyle(
+                  //                     color: Colors.white70,
+                  //                     fontSize: 24,
+                  //                   ),
+                  //                 ),
+                  //               const SizedBox(height: 5),
+                  //               Row(
+                  //                 children: [
+                  //                   const Icon(
+                  //                     Icons.phone,
+                  //                     color: Colors.white70,
+                  //                     size: 18,
+                  //                   ),
+                  //                   const SizedBox(width: 5),
+                  //                   Text(
+                  //                     '${userData['mobileNumber']}',
+                  //                     style: const TextStyle(
+                  //                       color: Colors.white70,
+                  //                       fontSize: 18,
+                  //                     ),
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //               const SizedBox(height: 5),
+                  //               Row(
+                  //                 children: [
+                  //                   const Icon(
+                  //                     Icons.email,
+                  //                     color: Colors.white70,
+                  //                     size: 18,
+                  //                   ),
+                  //                   const SizedBox(width: 5),
+                  //                   Text(
+                  //                     '${userData['email']}',
+                  //                     style: const TextStyle(
+                  //                       color: Colors.white70,
+                  //                       fontSize: 18,
+                  //                     ),
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //             ],
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  const SizedBox(height: 30),
+                ],
+              ),
             ),
           ),
-        ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            "My Links",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+          const SizedBox(height: 15),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(
+              "My Links",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-        ),
-        Expanded(child: _buildSocialGrid(customLinks)),
-      ],
+          const SizedBox(height: 15),
+          // ✨ --- REMOVED THE Expanded WIDGET ---
+          _buildSocialGrid(customLinks),
+        ],
+      ),
     );
   }
 
@@ -1077,10 +1121,10 @@ class _HomePageState extends State<HomePage> {
         .toSet();
 
     List<dynamic> gridItems = [];
-    bool hasMore = links.length > 5;
+    bool hasMore = links.length > 7;
 
     if (hasMore) {
-      gridItems = links.take(5).toList();
+      gridItems = links.take(7).toList();
       gridItems.add({'platform': 'show_more'});
     } else {
       gridItems = List.from(links);
@@ -1091,8 +1135,10 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
+        // ✨ --- ADDED shrinkWrap TO PREVENT LAYOUT ERRORS ---
+        shrinkWrap: true,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+          crossAxisCount: 4,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
@@ -1101,7 +1147,6 @@ class _HomePageState extends State<HomePage> {
           final item = gridItems[index];
           final String platform = item['platform'];
 
-          // ✨ --- FIX: The onTap logic for these two buttons is now restored ---
           if (platform == 'add_new' || platform == 'show_more') {
             return InkWell(
               onTap: () {
@@ -1111,10 +1156,8 @@ class _HomePageState extends State<HomePage> {
                     builder: (_) => const AddOrEditLinkDialog(),
                   );
                 } else {
-                  // platform == 'show_more'
                   Navigator.push(
                     context,
-                    // ✨ --- The AllLinksPage constructor is now empty ---
                     MaterialPageRoute(
                       builder: (context) => const AllLinksPage(),
                     ),
