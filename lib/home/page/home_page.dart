@@ -1,9 +1,11 @@
 import 'dart:io';
-
+import 'dart:ui' as ui;
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:link_vault/all_links/pages/all_links_page.dart';
 import 'package:link_vault/home/widgets/add_or_edit_link_dialog.dart';
 import 'package:link_vault/home/widgets/animated_exit_dialog.dart';
@@ -12,9 +14,8 @@ import 'package:link_vault/scanner/page/scanner_page.dart';
 import 'package:link_vault/services/firestore_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:ui' as ui;
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,10 +27,186 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _firestoreService = FirestoreService();
 
-  // ✨ --- FIX 1: Add a GlobalKey to identify the widget to capture ---
+  // GlobalKey to identify the widget to capture
   final GlobalKey _cardKey = GlobalKey();
+  // ✨ --- NEW METHODS FOR SCAN HISTORY ---
 
-  // ✨ --- FIX 2: Add the missing function to capture and share ---
+  Future<void> _showHistoryItemDialog(
+    Map<dynamic, dynamic> item, {
+    required bool isLocal,
+    required dynamic id,
+  }) async {
+    final String data = item['data'] ?? 'No data';
+    final Uri? uri = Uri.tryParse(data);
+    final bool isUrl =
+        uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Scanned Data'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text(data),
+              if (isUrl)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.open_in_browser),
+                    label: const Text('OPEN IN BROWSER'),
+                    onPressed: () async {
+                      if (uri != null) {
+                        await launchUrl(uri);
+                      }
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('CANCEL'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+          TextButton(
+            child: const Text(
+              'DELETE',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              _deleteHistoryItem(isLocal: isLocal, id: id);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteHistoryItem({
+    required bool isLocal,
+    required dynamic id,
+  }) async {
+    if (isLocal) {
+      final historyBox = Hive.box('scan_history');
+      await historyBox.delete(id);
+    } else {
+      await _firestoreService.deleteScanHistory(id);
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('History item deleted.')));
+  }
+
+  Widget _buildScanHistorySection() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestoreService.getScanHistoryStream(),
+      builder: (context, firestoreSnapshot) {
+        return ValueListenableBuilder(
+          valueListenable: Hive.box('scan_history').listenable(),
+          builder: (context, Box localBox, _) {
+            if (firestoreSnapshot.connectionState == ConnectionState.waiting &&
+                localBox.values.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            // Combine Firestore and Local data
+            final firestoreDocs = firestoreSnapshot.hasData
+                ? firestoreSnapshot.data!.docs
+                : [];
+            final localItems = localBox.toMap().entries.toList();
+
+            // Create a unified list
+            var combinedList = [
+              ...firestoreDocs.map(
+                (doc) => {'isLocal': false, 'id': doc.id, 'data': doc.data()},
+              ),
+              ...localItems.map(
+                (entry) => {
+                  'isLocal': true,
+                  'id': entry.key,
+                  'data': Map<String, dynamic>.from(entry.value),
+                },
+              ),
+            ];
+
+            // Sort by timestamp descending
+            combinedList.sort((a, b) {
+              final dateA = DateTime.parse(a['data']['timestamp']);
+              final dateB = DateTime.parse(b['data']['timestamp']);
+              return dateB.compareTo(dateA);
+            });
+
+            if (combinedList.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Text(
+                    "You haven't scanned anything yet.",
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ),
+              );
+            }
+
+            return ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: combinedList.length,
+              itemBuilder: (context, index) {
+                final item = combinedList[index];
+                final data = item['data'];
+                final bool isLocal = item['isLocal'];
+                final dynamic id = item['id'];
+
+                final DateTime timestamp = DateTime.parse(data['timestamp']);
+                final String formattedDate = DateFormat.yMMMd().add_jm().format(
+                  timestamp,
+                );
+                final String scanData = data['data'] ?? 'No data';
+
+                return Dismissible(
+                  key: Key(id.toString()),
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (_) {
+                    _deleteHistoryItem(isLocal: isLocal, id: id);
+                  },
+                  background: Container(
+                    color: Colors.redAccent,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(
+                      Icons.qr_code_scanner,
+                      color: Colors.white70,
+                    ),
+                    title: Text(
+                      scanData,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      formattedDate,
+                      style: const TextStyle(color: Colors.white54),
+                    ),
+                    onTap: () =>
+                        _showHistoryItemDialog(data, isLocal: isLocal, id: id),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Function to capture and share the profile card
   Future<void> _captureAndShareCard() async {
     try {
       final boundary =
@@ -181,6 +358,33 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // ✨ --- NEW: Dialog specifically for the main profile QR code ---
+  Future<void> _showMainQrDialog() async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.grey[800],
+        content: SizedBox(
+          width: 250,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                QrImageView(
+                  data: "https://www.linkedin.com/in/akanshu-jamwal",
+                  version: QrVersions.auto,
+                  size: 250.0,
+                  dataModuleStyle: const QrDataModuleStyle(color: Colors.white),
+                  eyeStyle: const QrEyeStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showLinkOptionsDialog(Map<String, dynamic> linkData) {
     showModalBottomSheet(
       context: context,
@@ -307,6 +511,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHomeBody(Map<String, dynamic> userData) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     final List<dynamic> customLinks = List.from(userData['custom_links'] ?? []);
     customLinks.sort(
       (a, b) =>
@@ -314,303 +521,156 @@ class _HomePageState extends State<HomePage> {
     );
     final bool hasImage = (userData['photoURL'] ?? '').isNotEmpty;
 
-    // ✨ --- WRAPPED THE COLUMN WITH SingleChildScrollView ---
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              // Set a background color for the fallback icon case
-              color: Colors.grey.shade800,
-              // The border radius you requested
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-            ),
-            // Removed fixed height to allow for flexible content
-            // height: MediaQuery.of(context).size.height * 0.4,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 35),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Stack(
+          SizedBox(height: screenHeight * 0.03),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+            child: Stack(
+              children: [
+                RepaintBoundary(
+                  key: _cardKey,
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    elevation: 8.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        RepaintBoundary(
-                          key: _cardKey,
-                          child: Card(
-                            elevation: 8.0,
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: double
-                                      .maxFinite, // Diameter of the old CircleAvatar (radius: 80)
-                                  height:
-                                      400, // Diameter of the old CircleAvatar (radius: 80)
-                                  decoration: BoxDecoration(
-                                    // Set a background color for the fallback icon case
-                                    color: Colors.grey[800],
-
-                                    // The border radius you requested
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      topRight: Radius.circular(12),
+                        // --- TOP IMAGE SECTION ---
+                        Container(
+                          width: double.maxFinite,
+                          height: screenHeight * 0.4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[800],
+                            image: hasImage
+                                ? DecorationImage(
+                                    image: NetworkImage(userData['photoURL']!),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                          ),
+                          child: !hasImage
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 80,
+                                  color: Colors.white70,
+                                )
+                              : null,
+                        ),
+                        // --- BOTTOM DETAILS SECTION ---
+                        Container(
+                          width: double.maxFinite,
+                          color: Colors.grey.shade900,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 12.0,
+                          ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final availableWidth = constraints.maxWidth;
+                              return Row(
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      _showMainQrDialog();
+                                    },
+                                    child: QrImageView(
+                                      padding: EdgeInsets.zero,
+                                      data:
+                                          "https://www.linkedin.com/in/akanshu-jamwal", // Replace with dynamic data
+                                      version: QrVersions.auto,
+                                      size: availableWidth * 0.28,
+                                      dataModuleStyle: const QrDataModuleStyle(
+                                        color: Colors.white,
+                                      ),
+                                      eyeStyle: const QrEyeStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
-
-                                    // Conditionally apply the background image
-                                    image: hasImage
-                                        ? DecorationImage(
-                                            image: NetworkImage(
-                                              userData['photoURL']!,
-                                            ),
-                                            // This makes the image cover the container without distortion
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null,
                                   ),
-                                  // Conditionally show the icon if there's no image
-                                  child: !hasImage
-                                      ? const Icon(
-                                          Icons.person,
-                                          size: 80,
-                                          color: Colors.white70,
-                                        )
-                                      : null,
-                                ),
-
-                                Container(
-                                  width: double
-                                      .maxFinite, // Diameter of the old CircleAvatar (radius: 80)
-                                  height:
-                                      160, // Diameter of the old CircleAvatar (radius: 80)
-                                  decoration: BoxDecoration(
-                                    // Set a background color for the fallback icon case
-                                    color: Colors.black,
-
-                                    // The border radius you requested
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(12),
-                                      bottomRight: Radius.circular(12),
-                                    ),
-
-                                    // Conditionally apply the background image
+                                  VerticalDivider(
+                                    color: Colors.white70,
+                                    thickness: 1,
+                                    width: screenWidth * 0.08,
+                                    indent: 2,
+                                    endIndent: 2,
                                   ),
-                                  // Conditionally show the icon if there's no image
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0,
-                                      vertical: 10.0,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        QrImageView(
-                                          padding: const EdgeInsets.all(0.0),
-                                          data:
-                                              "https://www.linkedin.com/in/akanshu-jamwal",
-                                          version: QrVersions.auto,
-
-                                          size: 120.0,
-                                          dataModuleStyle:
-                                              const QrDataModuleStyle(
-                                                color: Colors.white,
-                                              ),
-                                          eyeStyle: const QrEyeStyle(
+                                        Text(
+                                          userData['displayName'] ?? 'No Name',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
                                             color: Colors.white,
+                                            // ✨ FONT SIZE CHANGE: Added clamp() for min/max font size
+                                            fontSize: (screenWidth * 0.065)
+                                                .clamp(20.0, 32.0),
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        const VerticalDivider(
-                                          color: Colors.white70,
-                                          thickness: 1,
-                                          width: 40,
-                                          indent: 2,
-                                          endIndent: 2,
+                                        if ((userData['designation'] ?? '')
+                                            .isNotEmpty)
+                                          Text(
+                                            '${userData['designation']}',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              // ✨ FONT SIZE CHANGE: Added clamp() for min/max font size
+                                              fontSize: (screenWidth * 0.045)
+                                                  .clamp(16.0, 22.0),
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        const SizedBox(height: 5),
+                                        _buildContactRow(
+                                          Icons.phone,
+                                          '${userData['mobileNumber']}',
+                                          screenWidth,
                                         ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              userData['displayName'] ??
-                                                  'No Name',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                                fontSize: 24,
-                                              ),
-                                            ),
-                                            if ((userData['designation'] ?? '')
-                                                .isNotEmpty)
-                                              Text(
-                                                '${userData['designation']}',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 18,
-                                                ),
-                                              ),
-                                            const SizedBox(height: 5),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.phone,
-                                                  color: Colors.white70,
-                                                  size: 18,
-                                                ),
-                                                const SizedBox(width: 5),
-                                                Text(
-                                                  '${userData['mobileNumber']}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 5),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.email,
-                                                  color: Colors.white70,
-                                                  size: 18,
-                                                ),
-                                                const SizedBox(width: 5),
-                                                Text(
-                                                  '${userData['email']}',
-                                                  style: const TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: 15,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                        const SizedBox(height: 5),
+                                        _buildContactRow(
+                                          Icons.email,
+                                          '${userData['email']}',
+                                          screenWidth,
                                         ),
                                       ],
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: IconButton(
-                            icon: const Icon(Icons.share, color: Colors.white),
-                            onPressed: () {
-                              // 3. Call the share function
-                              _captureAndShareCard();
+                                ],
+                              );
                             },
                           ),
                         ),
                       ],
                     ),
                   ),
-
-                  // Card(
-                  //   elevation: 0,
-                  //   // margin: const EdgeInsets.all(16.0),
-                  //   shape: RoundedRectangleBorder(
-                  //     borderRadius: BorderRadius.only(
-                  //       bottomLeft: Radius.circular(12),
-                  //       bottomRight: Radius.circular(12),
-                  //     ),
-                  //   ),
-                  //   color: Colors.black,
-                  //   child: IntrinsicHeight(
-                  //     child: Padding(
-                  //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  //       child: Row(
-                  //         mainAxisSize: MainAxisSize.min,
-                  //         children: [
-                  //           Container(
-                  //             width: 90,
-                  //             height: 90,
-                  //             color: Colors.red.shade300,
-                  //           ),
-                  //           const VerticalDivider(
-                  //             color: Colors.white70,
-                  //             thickness: 1,
-                  //             width: 40,
-                  //             indent: 2,
-                  //             endIndent: 2,
-                  //           ),
-                  //           Column(
-                  //             crossAxisAlignment: CrossAxisAlignment.start,
-                  //             children: [
-                  //               Text(
-                  //                 userData['displayName'] ?? 'No Name',
-                  //                 style: const TextStyle(
-                  //                   fontWeight: FontWeight.bold,
-                  //                   color: Colors.white,
-                  //                   fontSize: 28,
-                  //                 ),
-                  //               ),
-                  //               if ((userData['designation'] ?? '').isNotEmpty)
-                  //                 Text(
-                  //                   '${userData['designation']}',
-                  //                   style: const TextStyle(
-                  //                     color: Colors.white70,
-                  //                     fontSize: 24,
-                  //                   ),
-                  //                 ),
-                  //               const SizedBox(height: 5),
-                  //               Row(
-                  //                 children: [
-                  //                   const Icon(
-                  //                     Icons.phone,
-                  //                     color: Colors.white70,
-                  //                     size: 18,
-                  //                   ),
-                  //                   const SizedBox(width: 5),
-                  //                   Text(
-                  //                     '${userData['mobileNumber']}',
-                  //                     style: const TextStyle(
-                  //                       color: Colors.white70,
-                  //                       fontSize: 18,
-                  //                     ),
-                  //                   ),
-                  //                 ],
-                  //               ),
-                  //               const SizedBox(height: 5),
-                  //               Row(
-                  //                 children: [
-                  //                   const Icon(
-                  //                     Icons.email,
-                  //                     color: Colors.white70,
-                  //                     size: 18,
-                  //                   ),
-                  //                   const SizedBox(width: 5),
-                  //                   Text(
-                  //                     '${userData['email']}',
-                  //                     style: const TextStyle(
-                  //                       color: Colors.white70,
-                  //                       fontSize: 18,
-                  //                     ),
-                  //                   ),
-                  //                 ],
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  const SizedBox(height: 30),
-                ],
-              ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: const Icon(Icons.share, color: Colors.white),
+                    onPressed: _captureAndShareCard,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black.withOpacity(0.4),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 30),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Text(
@@ -623,10 +683,48 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 15),
-          // ✨ --- REMOVED THE Expanded WIDGET ---
           _buildSocialGrid(customLinks),
+          // ✨ --- ADD THIS NEW SECTION AT THE END ---
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+            child: Text(
+              "Scan History",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          _buildScanHistorySection(),
         ],
       ),
+    );
+  }
+
+  Widget _buildContactRow(IconData icon, String text, double screenWidth) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: Colors.white70,
+          // ✨ FONT SIZE CHANGE: Clamped icon size as well for consistency
+          size: (screenWidth * 0.04).clamp(16.0, 20.0),
+        ),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: Colors.white70,
+              // ✨ FONT SIZE CHANGE: Added clamp() for min/max font size
+              fontSize: (screenWidth * 0.038).clamp(14.0, 18.0),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
@@ -656,10 +754,9 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
-        // ✨ --- ADDED shrinkWrap TO PREVENT LAYOUT ERRORS ---
         shrinkWrap: true,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 100,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),
@@ -706,6 +803,7 @@ class _HomePageState extends State<HomePage> {
                         color: Colors.white70,
                         fontSize: 12,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -734,13 +832,18 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Icon(icon, color: Colors.white, size: 35),
                       const SizedBox(height: 8),
-                      Text(
-                        platform[0].toUpperCase() + platform.substring(1),
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Text(
+                          platform[0].toUpperCase() + platform.substring(1),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

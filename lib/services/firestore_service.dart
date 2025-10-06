@@ -76,6 +76,7 @@ class FirestoreService {
       'custom_links': FieldValue.arrayUnion([newLink]),
     });
   }
+
   // ✨ --- NEW: METHOD TO DELETE MULTIPLE LINKS ---
   Future<void> deleteMultipleLinks(
     List<Map<String, dynamic>> linksToDelete,
@@ -95,6 +96,7 @@ class FirestoreService {
     // Overwrite the existing array with the newly ordered one
     await userDocRef.update({'custom_links': reorderedLinks});
   }
+
   // DELETE a social link
   Future<void> deleteLink(Map<String, dynamic> linkToDelete) async {
     if (_currentUser == null) return;
@@ -102,5 +104,38 @@ class FirestoreService {
     await userDocRef.update({
       'custom_links': FieldValue.arrayRemove([linkToDelete]),
     });
+  }
+  // ✨ --- NEW METHODS FOR SCAN HISTORY ---
+
+  Future<void> addScanHistory(Map<String, dynamic> scanData) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('scan_history')
+        .add(scanData);
+  }
+
+  Stream<QuerySnapshot> getScanHistoryStream() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Stream.empty();
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('scan_history')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
+
+  Future<void> deleteScanHistory(String docId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('scan_history')
+        .doc(docId)
+        .delete();
   }
 }
