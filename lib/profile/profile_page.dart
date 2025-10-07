@@ -732,6 +732,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   enabled: _isEditing,
                 ),
                 Spacer(),
+                const SizedBox(height: 50),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(

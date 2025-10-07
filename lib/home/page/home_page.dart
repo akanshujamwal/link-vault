@@ -668,7 +668,7 @@ class _HomePageState extends State<HomePage> {
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
                                             // ✨ FONT SIZE CHANGE: Added clamp() for min/max font size
-                                            fontSize: (screenWidth * 0.065)
+                                            fontSize: (screenWidth * 0.055)
                                                 .clamp(20.0, 32.0),
                                           ),
                                           maxLines: 1,
@@ -773,7 +773,7 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               color: Colors.white70,
               // ✨ FONT SIZE CHANGE: Added clamp() for min/max font size
-              fontSize: (screenWidth * 0.038).clamp(14.0, 18.0),
+              fontSize: (screenWidth * 0.03).clamp(14.0, 18.0),
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
