@@ -792,7 +792,7 @@ class _AllLinksPageState extends State<AllLinksPage> {
                       child: Text(
                         '$arrangeNumber',
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: Colors.amber,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
