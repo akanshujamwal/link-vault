@@ -311,7 +311,7 @@ class _HomePageState extends State<HomePage> {
     await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[800],
         content: SizedBox(
           width: 250,
           child: SingleChildScrollView(
@@ -321,39 +321,94 @@ class _HomePageState extends State<HomePage> {
                 QrImageView(
                   data: data,
                   version: QrVersions.auto,
-                  size: 200.0,
-                  dataModuleStyle: const QrDataModuleStyle(color: Colors.black),
-                  eyeStyle: const QrEyeStyle(color: Colors.black),
+                  size: 250.0,
+                  dataModuleStyle: const QrDataModuleStyle(color: Colors.white),
+                  eyeStyle: const QrEyeStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   data,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    if (isUrl)
+                      ElevatedButton.icon(
+                        icon: const Icon(
+                          Icons.open_in_browser,
+                          color: Colors.amber,
+                        ),
+                        label: const Text(
+                          'Open',
+                          style: TextStyle(color: Colors.amber),
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: data));
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Opening in browser..."),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.copy, color: Colors.amber),
+                      label: const Text(
+                        'Copy',
+                        style: TextStyle(color: Colors.amber),
+                      ),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: data));
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Copied to clipboard!")),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
         ),
-        actions: [
-          if (isUrl)
-            TextButton(
-              child: const Text("OPEN IN BROWSER"),
-              onPressed: () async {
-                if (uri != null) await launchUrl(uri);
-              },
-            ),
-          TextButton(
-            child: const Text("COPY"),
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: data));
-              Navigator.pop(dialogContext);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Copied to clipboard!")),
-              );
-            },
-          ),
-        ],
+        // actions: [
+        //   if (isUrl)
+        //     TextButton(
+        //       child: const Text("OPEN IN BROWSER"),
+        //       onPressed: () async {
+        //         if (uri != null) await launchUrl(uri);
+        //       },
+        //     ),
+        //   TextButton(
+        //     child: const Text("COPY"),
+        //     onPressed: () {
+        //       Clipboard.setData(ClipboardData(text: data));
+        //       Navigator.pop(dialogContext);
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         const SnackBar(content: Text("Copied to clipboard!")),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
     );
   }
@@ -375,7 +430,7 @@ class _HomePageState extends State<HomePage> {
                   version: QrVersions.auto,
                   size: 250.0,
                   dataModuleStyle: const QrDataModuleStyle(color: Colors.white),
-                  eyeStyle: const QrEyeStyle(color: Colors.white),
+                  eyeStyle: QrEyeStyle(color: Colors.white),
                 ),
               ],
             ),

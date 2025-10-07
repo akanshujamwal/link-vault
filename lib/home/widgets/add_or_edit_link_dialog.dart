@@ -144,19 +144,61 @@ class _AddOrEditLinkDialogState extends State<AddOrEditLinkDialog> {
                   ? 'Please enter a URL'
                   : null,
             ),
+
+            const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.cancel, color: Colors.amber),
+                  label: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.amber),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.copy, color: Colors.amber),
+                  label: Text(
+                    _isEditing ? 'Save Changes' : 'Save',
+                    style: TextStyle(color: Colors.amber),
+                  ),
+                  onPressed: _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _save,
-          child: Text(_isEditing ? 'Save Changes' : 'Save'),
-        ),
-      ],
+      // actions: [
+      //   TextButton(
+      //     onPressed: () => Navigator.pop(context),
+      //     child: const Text('Cancel', style: TextStyle(color: Colors.amber)),
+      //   ),
+      //   ElevatedButton(
+      //     onPressed: _save,
+      //     child: Text(
+      //       _isEditing ? 'Save Changes' : 'Save',
+      //       style: TextStyle(color: Colors.amber),
+      //     ),
+      //   ),
+      // ],
     );
   }
 }
