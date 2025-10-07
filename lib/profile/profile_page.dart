@@ -656,35 +656,35 @@ class _ProfilePageState extends State<ProfilePage> {
                               )
                             : null,
                       ),
-                      if (_isEditing)
-                        Positioned(
-                          bottom: 0,
-                          right: 4,
-                          child: CircleAvatar(
-                            radius: screenWidth * 0.06,
-                            backgroundColor: Colors.black,
-                            child: CircleAvatar(
-                              radius: screenWidth * 0.055,
-                              backgroundColor: Theme.of(context).primaryColor,
-                              child: _isUploading
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : IconButton(
-                                      icon: Icon(
-                                        Icons.camera_alt,
-                                        color: Colors.white,
-                                        size: screenWidth * 0.05,
-                                      ),
-                                      onPressed: _pickAndUploadImage,
-                                    ),
-                            ),
-                          ),
-                        ),
+                      // if (_isEditing)
+                      //   Positioned(
+                      //     bottom: 0,
+                      //     right: 4,
+                      //     child: CircleAvatar(
+                      //       radius: screenWidth * 0.06,
+                      //       backgroundColor: Colors.black,
+                      //       child: CircleAvatar(
+                      //         radius: screenWidth * 0.055,
+                      //         backgroundColor: Theme.of(context).primaryColor,
+                      //         child: _isUploading
+                      //             ? const Padding(
+                      //                 padding: EdgeInsets.all(8.0),
+                      //                 child: CircularProgressIndicator(
+                      //                   color: Colors.white,
+                      //                   strokeWidth: 2,
+                      //                 ),
+                      //               )
+                      //             : IconButton(
+                      //                 icon: Icon(
+                      //                   Icons.camera_alt,
+                      //                   color: Colors.white,
+                      //                   size: screenWidth * 0.05,
+                      //                 ),
+                      //                 onPressed: _pickAndUploadImage,
+                      //               ),
+                      //       ),
+                      //     ),
+                      //   ),
                     ],
                   ),
                 ),
