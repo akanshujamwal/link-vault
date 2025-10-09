@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -363,11 +362,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     icon: const Icon(Icons.open_in_browser),
                     label: const Text('OPEN IN BROWSER'),
                     onPressed: () async {
-                      if (uri != null) {
-                        // Added canLaunchUrl check for robustness
-                        if (await canLaunchUrl(uri)) {
-                          await launchUrl(uri);
-                        }
+                      // Added canLaunchUrl check for robustness
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
                       }
                     },
                   ),
