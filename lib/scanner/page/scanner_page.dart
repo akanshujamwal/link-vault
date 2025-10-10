@@ -202,7 +202,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
         const SizedBox(height: 20),
         ElevatedButton.icon(
           icon: const Icon(Icons.qr_code_scanner),
-          label: const Text('Tap to Scan Again'),
+          label: const Text('Tap to Scan'),
           onPressed: _restartScanner,
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
