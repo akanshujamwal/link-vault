@@ -1,4 +1,4 @@
-# 🔗 Link_Valut: High-Performance Link Management
+# 🔗 Link Valut: High-Performance Link Management
 
 > **The modern antidote to "tab fatigue."** Most bookmarking tools are bloated, buried, or broken. **Link_Valut** was engineered as a lightweight, scalable solution for the power user who treats digital resources like code: **organized, accessible, and efficiently indexed.**
 
