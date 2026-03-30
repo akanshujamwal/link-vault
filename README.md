@@ -12,17 +12,17 @@
 
 ## ✨ Features
 
-- ** Google Sign-In Authentication** — Secure, one-tap login via Firebase Auth
-- ** Profile Dashboard** — A beautiful profile card displaying your name, designation, phone, email, and profile photo
-- ** Social Link Management** — Add, edit, and delete links for platforms like LinkedIn, GitHub, Twitter, Instagram, YouTube, LeetCode, Kaggle, and 20+ more
-- ** QR Code Generation** — Instantly generate a scannable QR code for any link
-- ** QR Code Scanning** — Scan QR codes and automatically detect URLs to open in-browser
-- ** Scan History** — Tracks all scanned QR codes both locally (via Hive) and in the cloud (Firestore), synced in real-time
-- ** All Links View** — Paginated grid to browse all saved links beyond the homepage preview
-- ** Share Profile Card** — Capture and share your profile card as an image with one tap
-- ** Dark Theme UI** — Polished, fully dark interface built for readability and style
-- ** Real-Time Sync** — Firestore streams keep your data live across devices
-- ** Offline Support** — Hive local storage keeps scan history available offline
+-  Google Sign-In Authentication — Secure, one-tap login via Firebase Auth
+-  Profile Dashboard — A beautiful profile card displaying your name, designation, phone, email, and profile photo
+-  Social Link Management — Add, edit, and delete links for platforms like LinkedIn, GitHub, Twitter, Instagram, YouTube, LeetCode, Kaggle, and 20+ more
+-  QR Code Generation — Instantly generate a scannable QR code for any link
+-  QR Code Scanning — Scan QR codes and automatically detect URLs to open in-browser
+-  Scan History — Tracks all scanned QR codes both locally (via Hive) and in the cloud (Firestore), synced in real-time
+-  All Links View — Paginated grid to browse all saved links beyond the homepage preview
+-  Share Profile Card — Capture and share your profile card as an image with one tap
+-  Dark Theme UI — Polished, fully dark interface built for readability and style
+-  Real-Time Sync — Firestore streams keep your data live across devices
+-  Offline Support — Hive local storage keeps scan history available offline
 
 ---
 
