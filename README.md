@@ -1,16 +1,16 @@
-# 🔗 Link Vault
+#  Link Vault
 
 > **The modern antidote to "tab fatigue."** A sleek, Firebase-powered Flutter app to store, organize, and share all your important links — with built-in QR code generation and scanning.
 
 ---
 
-## 📱 Overview
+##  Overview
 
 **Link Vault** is a cross-platform mobile application built with Flutter that acts as your personal link management hub. Whether you're a developer juggling documentation, a student managing research, or a professional curating your social presence — Link Vault keeps everything organized, accessible, and shareable in one place.
 
 ---
 
-## ✨ Features
+##  Features
 
 -  Google Sign-In Authentication — Secure, one-tap login via Firebase Auth
 -  Profile Dashboard — A beautiful profile card displaying your name, designation, phone, email, and profile photo
@@ -26,7 +26,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -44,7 +44,7 @@
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 lib/
@@ -80,7 +80,7 @@ lib/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -117,7 +117,7 @@ lib/
 
 ---
 
-## 📖 Usage
+##  Usage
 
 ### Adding Links
 - Tap the **"Add New"** tile in the home grid
