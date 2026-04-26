@@ -141,7 +141,7 @@ lib/
 
 ---
 
-## 📦 Key Dependencies
+## Key Dependencies
 
 ```yaml
 firebase_core: ^3.6.0
@@ -162,7 +162,7 @@ intl: ^0.20.2
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -174,13 +174,13 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 This project is for personal/educational use. See the repository for license details.
 
 ---
 
-## 👤 Author
+## Author
 
 **Akanshu Jamwal**
 - GitHub: [@akanshujamwal](https://github.com/akanshujamwal)
