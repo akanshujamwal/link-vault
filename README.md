@@ -1,6 +1,6 @@
 #  Link Vault
 
-> **The modern antidote to "tab fatigue."** A sleek, Firebase-powered Flutter app to store, organize, and share all your important links — with built-in QR code generation and scanning.
+**The modern antidote to "tab fatigue."** A sleek, Firebase-powered Flutter app to store, organize, and share all your important links — with built-in QR code generation and scanning.
 
 ---
 
